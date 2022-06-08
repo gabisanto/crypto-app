@@ -1,6 +1,8 @@
 import { useState,useEffect } from 'react'
 import styled from '@emotion/styled'
 import Form from './components/Form'
+import Result from './components/Result'
+import Spinner from './components/Spinner'
 import CryptoImg from './img/imagen-criptos.png'
 
 const Container = styled.div`
@@ -21,7 +23,7 @@ const Image = styled.img`
     display:block; 
 `
 
-const Heading = styled.h1`
+const Header = styled.h1`
     font-family: 'Roboto', sans-serif;
     color: #FFF;
     text-align: center;
@@ -42,10 +44,26 @@ const Heading = styled.h1`
 
 function App() {
   const [currencies, setCurrencies] = useState({})
+  const [result, setResult] = useState({})
+  const [loading, setLoading] = useState(false) //for the spinner!
 
   useEffect(() => {
     if(Object.keys(currencies).length>0) {
-      console.log(currencies)
+      const cryptoPrice = async () => {
+        setLoading(true)
+        setResult({}) //i dont want to see the previous result so i reset state
+        const {currency, cryptocurrency} = currencies
+
+        const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${cryptocurrency}&tsyms=${currency}`
+
+        const response = await fetch(url)
+        const result = await response.json()
+
+        setResult(result.DISPLAY[cryptocurrency][currency])
+
+        setLoading(false)
+      }
+      cryptoPrice()
     }
   },[currencies])
 
@@ -56,13 +74,16 @@ function App() {
           alt='Crypto image'
         />
         <div>
-        <Heading>Check updated Crypto prices ☆ﾟ.*･｡ﾟᵕ꒳ᵕ</Heading>
+        <Header>Check updated Crypto prices ☆ﾟ.*･｡ﾟᵕ꒳ᵕ</Header>
 
         <Form 
           setCurrencies={setCurrencies}
         />
-
-        {/* <Result /> */}
+        {loading && <Spinner />}
+        {result.PRICE && <Result 
+          result={result}
+        
+        />}
 
 
         </div>
